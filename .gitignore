@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Build scripts
+gen_compare.py
+
+# Project data
+.workbuddy/
