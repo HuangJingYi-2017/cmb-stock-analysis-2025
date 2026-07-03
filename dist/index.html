@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>招商银行 (600036.SH) - K线 & 成交量仪表盘</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js">
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #2c3e50; min-height: 100vh; }
+
+.header {
+  background: linear-gradient(135deg, #0f1923 0%, #1a2942 50%, #0d2137 100%);
+  color: #fff; padding: 28px 40px;
+  position: relative; overflow: hidden;
+}
+.header::after {
+  content: ''; position: absolute; top: -40px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.header h1 { font-size: 26px; font-weight: 700; letter-spacing: 2px; position: relative; z-index: 1; }
+.header .code { font-size: 14px; opacity: 0.65; margin-top: 4px; letter-spacing: 1px; position: relative; z-index: 1; }
+
+.stats-bar {
+  display: flex; gap: 0; margin: 0 40px;
+  background: #fff; border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.stat-item {
+  flex: 1; padding: 18px 20px; text-align: center;
+  border-right: 1px solid #f0f0f0; position: relative;
+}
+.stat-item:last-child { border-right: none; }
+.stat-item .label { font-size: 11px; color: #999; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-item .value { font-size: 20px; font-weight: 700; }
+.stat-item .sub { font-size: 11px; color: #aaa; margin-top: 3px; }
+.value.red { color: #e83939; }
+.value.green { color: #19a55e; }
+
+.main-content {
+  margin: 20px 40px; display: flex; flex-direction: column; gap: 16px;
+}
+
+.section {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.section-header {
+  padding: 16px 24px; border-bottom: 1px solid #f0f0f0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.section-header h2 { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+.section-header .hint { font-size: 12px; color: #bbb; }
+
+.chart-wrap { padding: 8px 8px 4px; }
+.chart-kline { width: 100%; height: 520px; }
+.chart-volume { width: 100%; height: 220px; }
+
+.divider { height: 4px; background: #f0f2f5; }
+
+.legend-row {
+  display: flex; gap: 16px; padding: 0 24px 12px; flex-wrap: wrap;
+}
+.legend-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #666; }
+.legend-dot::before { content: ''; width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+.legend-dot.ma5::before  { background: #f5a623; }
+.legend-dot.ma10::before { background: #4a90d9; }
+.legend-dot.ma20::before { background: #9b59b6; }
+.legend-dot.ma60::before { background: #e67e22; }
+.legend-dot.vol5::before  { background: #f5a623; width:8px; height:2px; }
+.legend-dot.vol20::before { background: #9b59b6; width:8px; height:2px; }
+
+.footer {
+  margin: 0 40px 24px; text-align: center; font-size: 11px; color: #bbb;
+}
+
+.btn-group { display: flex; gap: 6px; }
+.btn-sm {
+  padding: 4px 14px; border: 1px solid #ddd; border-radius: 14px;
+  background: #fff; cursor: pointer; font-size: 12px; color: #666;
+  transition: all 0.2s;
+}
+.btn-sm:hover, .btn-sm.active { background: #1a2942; color: #fff; border-color: #1a2942; }
+
+@media (max-width: 768px) {
+  .header { padding: 20px; }
+  .stats-bar { margin: 0 12px; flex-wrap: wrap; }
+  .stat-item { min-width: 33%; border-bottom: 1px solid #f0f0f0; }
+  .main-content { margin: 12px; }
+  .chart-kline { height: 380px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>招商银行 600036.SH</h1>
+  <div class="code">China Merchants Bank · 上交所主板 · 银行板块 · 近一年交易数据分析</div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+</div>
+
+<div class="main-content">
+
+  <div class="section">
+    <div class="section-header">
+      <h2>🕯️ K 线图 & 均线系统</h2>
+      <div class="btn-group" id="maToggles"></div>
+    </div>
+    <div class="legend-row">
+      <span class="legend-dot ma5">MA5</span>
+      <span class="legend-dot ma10">MA10</span>
+      <span class="legend-dot ma20">MA20</span>
+      <span class="legend-dot ma60">MA60</span>
+      <span style="margin-left:auto;font-size:12px;color:#bbb;">拖拽底部滑块缩放 · 鼠标滚轮缩放</span>
+    </div>
+    <div class="chart-wrap"><div id="klineChart" class="chart-kline"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>📊 成交量</h2>
+      <span class="hint">红柱=上涨 绿柱=下跌</span>
+    </div>
+    <div class="legend-row">
+      <span class="legend-dot vol5">VOL MA5</span>
+      <span class="legend-dot vol20">VOL MA20</span>
+    </div>
+    <div class="chart-wrap"><div id="volumeChart" class="chart-volume"></div></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  数据来源: Tushare Pro · 数据区间: 2025-07-03 ~ 2026-07-03 · 共 243 个交易日 · 更新于 2026-07-04
+</div>
+
+<script>
+// ====== 数据准备 ======
+var raw = [
+["2025-07-03",46.90,46.61,46.34,46.95,556226],
+["2025-07-04",46.60,47.07,46.40,47.50,678948],
+["2025-07-07",47.07,47.20,46.70,47.30,567427],
+["2025-07-08",47.28,47.62,47.10,47.67,637421],
+["2025-07-09",47.50,47.13,47.13,47.77,614566],
+["2025-07-10",47.10,48.24,47.10,48.55,1219784],
+["2025-07-11",46.28,45.64,45.62,46.50,1184443],
+["2025-07-14",45.65,45.57,45.44,46.09,648484],
+["2025-07-15",45.77,45.22,44.80,45.92,666206],
+["2025-07-16",45.26,45.11,44.88,45.54,468186],
+["2025-07-17",45.10,45.00,44.91,45.33,416895],
+["2025-07-18",45.05,45.05,44.74,45.16,543431],
+["2025-07-21",45.05,44.85,44.83,45.23,566412],
+["2025-07-22",44.85,44.94,44.21,44.98,922319],
+["2025-07-23",44.97,45.12,44.96,45.70,853249],
+["2025-07-24",45.21,44.88,44.80,45.36,826620],
+["2025-07-25",44.84,44.83,44.75,45.17,696264],
+["2025-07-28",44.80,44.44,44.41,45.16,635127],
+["2025-07-29",44.44,44.14,44.14,44.80,785813],
+["2025-07-30",44.17,44.42,43.93,44.75,725461],
+["2025-07-31",44.40,44.48,43.85,44.56,733195],
+["2025-08-01",44.50,44.42,44.35,44.97,594621],
+["2025-08-04",44.31,44.90,44.31,44.97,498008],
+["2025-08-05",44.78,45.25,44.64,45.40,555258],
+["2025-08-06",45.29,45.12,45.11,45.73,430296],
+["2025-08-07",45.12,45.15,44.96,45.60,440643],
+["2025-08-08",45.20,44.53,44.53,45.28,456422],
+["2025-08-11",44.53,44.10,44.10,44.63,536724],
+["2025-08-12",44.13,44.00,44.00,44.48,562252],
+["2025-08-13",44.14,43.54,43.49,44.25,876737],
+["2025-08-14",43.55,43.78,43.50,43.94,676352],
+["2025-08-15",43.66,43.30,43.30,43.74,932957],
+["2025-08-18",43.10,43.51,42.89,43.67,926397],
+["2025-08-19",43.45,43.40,43.29,43.70,574119],
+["2025-08-20",43.30,43.45,43.15,43.63,547240],
+["2025-08-21",43.50,43.47,43.23,43.59,578540],
+["2025-08-22",43.47,43.26,43.04,43.48,794496],
+["2025-08-25",43.32,43.87,43.11,43.87,907390],
+["2025-08-26",43.89,43.52,43.42,44.02,755722],
+["2025-08-27",43.50,43.00,43.00,43.66,758141],
+["2025-08-28",43.02,42.98,42.60,43.30,822426],
+["2025-08-29",42.98,42.89,42.89,43.99,1360879],
+["2025-09-01",42.62,41.98,41.88,42.64,1276333],
+["2025-09-02",41.86,43.44,41.86,43.50,1452141],
+["2025-09-03",43.44,42.90,42.70,43.57,818406],
+["2025-09-04",42.81,43.05,42.14,43.32,935363],
+["2025-09-05",43.00,42.76,42.53,43.02,572328],
+["2025-09-08",42.70,42.43,42.37,43.10,851682],
+["2025-09-09",42.42,42.83,42.40,42.88,589527],
+["2025-09-10",42.80,43.00,42.56,43.15,471387],
+["2025-09-11",43.13,43.30,42.78,43.33,650731],
+["2025-09-12",43.38,42.54,42.42,43.47,823140],
+["2025-09-15",42.48,42.22,42.11,42.79,699491],
+["2025-09-16",42.32,41.75,41.66,42.43,859051],
+["2025-09-17",41.76,41.76,41.70,42.19,572363],
+["2025-09-18",41.78,40.83,40.80,41.84,1003522],
+["2025-09-19",40.80,41.00,40.55,41.53,836563],
+["2025-09-22",41.15,40.92,40.80,41.37,656110],
+["2025-09-23",40.98,41.55,40.63,41.75,938851],
+["2025-09-24",41.50,41.32,41.29,41.89,643900],
+["2025-09-25",41.32,40.82,40.81,41.36,666949],
+["2025-09-26",40.81,40.80,40.30,41.00,682767],
+["2025-09-29",40.77,40.68,40.36,41.29,835551],
+["2025-09-30",40.65,40.41,40.41,40.79,700025],
+["2025-10-09",40.21,40.33,39.82,40.44,972320],
+["2025-10-10",40.30,40.18,40.13,40.65,955050],
+["2025-10-13",39.76,40.11,39.70,40.30,1065936],
+["2025-10-14",40.09,41.26,39.83,41.49,1733827],
+["2025-10-15",41.25,41.50,40.93,41.97,1062767],
+["2025-10-16",41.36,41.93,41.07,42.20,1062488],
+["2025-10-17",41.93,41.59,41.27,42.00,829827],
+["2025-10-20",41.52,41.42,41.40,41.95,649477],
+["2025-10-21",41.62,41.98,41.62,42.28,759931],
+["2025-10-22",41.98,41.95,41.82,42.28,551334],
+["2025-10-23",41.88,42.24,41.88,42.55,713174],
+["2025-10-24",42.24,41.95,41.87,42.46,698832],
+["2025-10-27",41.96,41.59,41.57,42.24,988949],
+["2025-10-28",41.57,41.60,41.47,41.93,705951],
+["2025-10-29",41.63,40.77,40.77,41.63,910988],
+["2025-10-30",40.77,41.20,40.77,41.45,1131538],
+["2025-10-31",41.33,40.89,40.78,41.50,702607],
+["2025-11-03",40.94,41.79,40.80,41.92,921981],
+["2025-11-04",41.80,43.01,41.80,43.10,1340036],
+["2025-11-05",43.22,42.80,42.80,43.38,731714],
+["2025-11-06",42.82,42.34,42.28,42.98,871973],
+["2025-11-07",42.23,42.51,42.22,42.74,593191],
+["2025-11-10",42.52,42.72,42.41,42.95,532369],
+["2025-11-11",42.65,42.96,42.60,43.12,544671],
+["2025-11-12",42.98,42.93,42.67,43.25,587929],
+["2025-11-13",42.95,43.21,42.85,43.23,587980],
+["2025-11-14",43.20,43.25,42.88,43.30,518210],
+["2025-11-17",43.25,42.65,42.65,43.36,610674],
+["2025-11-18",42.68,42.88,42.50,43.08,517439],
+["2025-11-19",42.85,43.22,42.85,43.30,511696],
+["2025-11-20",43.22,43.23,42.89,43.40,585852],
+["2025-11-21",43.23,43.00,42.91,43.42,791264],
+["2025-11-24",43.00,42.63,42.63,43.39,678549],
+["2025-11-25",42.63,43.25,42.60,43.52,666409],
+["2025-11-26",43.31,43.25,43.02,43.60,451072],
+["2025-11-27",43.22,43.19,42.83,43.28,621434],
+["2025-11-28",43.18,42.95,42.95,43.28,494658],
+["2025-12-01",42.95,43.44,42.88,43.55,567919],
+["2025-12-02",43.45,43.38,43.08,43.65,406735],
+["2025-12-03",43.50,43.01,42.85,43.58,468960],
+["2025-12-04",43.10,43.22,42.70,43.35,361207],
+["2025-12-05",43.23,43.45,43.23,43.62,548906],
+["2025-12-08",43.47,43.18,43.11,43.56,580039],
+["2025-12-09",43.18,43.04,43.01,43.60,465939],
+["2025-12-10",43.04,41.70,41.70,43.30,1083157],
+["2025-12-11",41.70,41.68,41.50,42.10,846231],
+["2025-12-12",41.68,41.74,41.28,41.98,717625],
+["2025-12-15",41.78,41.80,41.62,42.07,562666],
+["2025-12-16",41.80,41.70,41.70,42.58,566176],
+["2025-12-17",41.71,41.52,41.51,42.20,631267],
+["2025-12-18",41.51,42.37,41.35,42.50,768119],
+["2025-12-19",42.30,41.99,41.99,42.52,573823],
+["2025-12-22",42.00,41.77,41.77,42.58,524740],
+["2025-12-23",41.76,41.91,41.76,42.33,606510],
+["2025-12-24",41.92,41.83,41.61,42.08,536305],
+["2025-12-25",41.83,41.78,41.51,42.13,499214],
+["2025-12-26",41.79,41.70,41.60,42.20,508810],
+["2025-12-29",41.82,41.87,41.64,42.19,682551],
+["2025-12-30",41.85,42.28,41.85,42.57,834783],
+["2025-12-31",42.37,42.10,42.00,42.38,554142],
+["2026-01-05",42.10,42.35,41.88,42.50,840830],
+["2026-01-06",42.30,42.73,42.07,42.93,923715],
+["2026-01-07",42.73,42.15,42.10,42.80,880560],
+["2026-01-08",42.15,41.58,41.58,42.58,1115727],
+["2026-01-09",41.58,41.30,41.25,41.95,985471],
+["2026-01-12",41.30,41.12,41.05,41.60,1186641],
+["2026-01-13",41.00,41.13,40.50,41.23,1159365],
+["2026-01-14",41.20,40.07,40.07,41.35,1917744],
+["2026-01-15",39.91,40.11,39.31,40.36,1217271],
+["2026-01-16",40.15,38.72,38.69,40.28,1525245],
+["2026-01-19",38.65,38.55,38.46,39.07,988703],
+["2026-01-20",38.62,38.73,38.36,39.10,1113873],
+["2026-01-21",38.80,38.24,38.10,39.05,1215000],
+["2026-01-22",38.20,37.85,37.78,38.40,1877546],
+["2026-01-23",37.87,37.50,37.38,38.07,1892113],
+["2026-01-26",37.43,38.02,37.30,38.22,2166794],
+["2026-01-27",37.95,38.10,37.76,38.41,1572406],
+["2026-01-28",38.20,37.80,37.70,38.23,2041667],
+["2026-02-02",37.80,38.53,37.67,38.70,1999982],
+["2026-02-03",38.59,38.67,38.43,39.18,1660843],
+["2026-02-04",38.68,38.45,38.35,39.08,1384979],
+["2026-02-05",38.45,38.30,38.01,38.77,842792],
+["2026-02-06",38.05,39.01,37.98,39.36,1021316],
+["2026-02-09",39.10,39.71,38.90,40.00,1218895],
+["2026-02-10",39.70,39.60,39.38,40.43,802980],
+["2026-02-11",39.68,39.48,39.36,40.15,658949],
+["2026-02-12",39.48,39.34,39.20,39.88,495965],
+["2026-02-13",39.33,39.40,39.10,39.87,528817],
+["2026-02-16",39.48,38.99,38.99,39.84,777526],
+["2026-02-17",38.98,38.71,38.68,39.25,705370],
+["2026-02-18",38.71,38.94,38.70,39.13,754674],
+["2026-02-19",38.93,38.78,38.65,39.18,723971],
+["2026-02-20",38.74,38.70,38.48,38.93,593325],
+["2026-02-23",38.68,38.75,38.60,39.11,637035],
+["2026-02-24",38.75,38.67,38.47,38.78,685473],
+["2026-02-25",38.60,39.18,38.60,39.34,1384656],
+["2026-02-26",39.20,38.60,38.57,39.26,1151939],
+["2026-02-27",38.58,39.15,38.50,39.48,783370],
+["2026-03-02",39.20,39.20,38.96,39.60,465957],
+["2026-03-03",39.22,38.79,38.79,39.30,766775],
+["2026-03-04",38.70,39.22,38.63,39.27,613717],
+["2026-03-05",39.25,39.50,39.20,39.82,689407],
+["2026-03-06",39.51,39.50,39.30,39.85,527723],
+["2026-03-09",39.50,39.76,39.42,40.13,765277],
+["2026-03-10",39.76,39.91,39.58,40.20,610945],
+["2026-03-11",39.90,40.12,39.55,40.18,656229],
+["2026-03-12",40.12,39.92,39.72,40.16,705831],
+["2026-03-13",39.91,39.77,39.68,40.16,650247],
+["2026-03-16",39.75,39.75,39.60,40.18,615803],
+["2026-03-17",39.75,38.68,38.68,39.84,957738],
+["2026-03-18",38.68,39.25,38.68,39.47,616336],
+["2026-03-19",39.25,39.26,39.12,39.83,653817],
+["2026-03-20",39.25,39.56,39.16,39.70,616790],
+["2026-03-23",39.55,39.44,39.20,39.66,468007],
+["2026-03-24",39.42,39.48,39.25,39.72,646054],
+["2026-03-25",39.45,39.32,39.21,39.67,663097],
+["2026-03-26",39.28,39.82,39.08,39.95,698460],
+["2026-03-27",39.76,39.76,39.60,40.16,1530509],
+["2026-03-30",39.75,39.40,39.26,39.88,761247],
+["2026-03-31",39.38,38.99,38.90,39.58,738639],
+["2026-04-01",38.99,39.62,38.97,39.77,637184],
+["2026-04-02",39.70,39.26,39.19,39.88,614116],
+["2026-04-03",39.15,39.21,39.15,39.58,622846],
+["2026-04-07",39.20,38.98,38.84,39.53,990523],
+["2026-04-08",38.98,39.13,38.80,39.26,901577],
+["2026-04-09",39.15,39.90,39.15,40.25,1126560],
+["2026-04-10",39.89,39.91,39.80,40.30,803288],
+["2026-04-13",39.89,39.52,39.26,40.18,685550],
+["2026-04-14",39.60,39.87,39.58,40.15,650303],
+["2026-04-15",39.83,39.87,39.71,40.10,537930],
+["2026-04-16",39.86,39.74,39.63,40.06,632769],
+["2026-04-17",39.74,39.81,39.67,40.15,555985],
+["2026-04-20",39.77,39.38,39.38,40.11,664485],
+["2026-04-21",39.38,39.38,39.23,39.72,543285],
+["2026-04-22",39.40,39.60,39.28,39.85,606642],
+["2026-04-23",39.57,38.50,38.42,39.74,1155527],
+["2026-04-24",38.50,38.27,38.27,39.03,936039],
+["2026-04-27",38.27,38.00,37.95,38.52,845875],
+["2026-04-28",37.98,37.95,37.87,38.15,639404],
+["2026-04-29",37.95,37.94,37.86,38.18,563097],
+["2026-04-30",37.93,37.97,37.86,38.15,698305],
+["2026-05-04",37.97,37.90,37.83,38.30,636162],
+["2026-05-05",37.94,37.88,37.70,38.14,434838],
+["2026-05-06",37.88,37.81,37.71,38.14,590871],
+["2026-05-07",37.84,37.65,37.55,38.03,557468],
+["2026-05-08",37.65,37.47,37.43,37.93,545655],
+["2026-05-11",37.46,37.37,37.30,37.77,520215],
+["2026-05-12",37.35,37.17,37.12,37.73,568387],
+["2026-05-13",37.20,37.15,37.00,37.49,567885],
+["2026-05-14",37.13,37.02,36.91,37.38,530850],
+["2026-05-15",37.04,36.94,36.91,37.30,613674],
+["2026-05-18",36.94,37.00,36.88,37.20,593580],
+["2026-05-19",36.99,37.00,36.87,37.34,484869],
+["2026-05-20",37.00,37.00,36.65,37.34,621746],
+["2026-05-21",37.02,37.12,36.86,37.64,782935],
+["2026-05-22",37.10,38.01,37.10,38.29,948668],
+["2026-05-25",38.00,38.20,38.00,38.63,830728],
+["2026-05-26",38.20,38.80,38.20,39.14,1047758],
+["2026-05-27",38.80,38.50,38.44,39.09,732029],
+["2026-05-28",38.50,38.10,37.96,38.82,777381],
+["2026-05-29",38.10,38.58,37.90,39.02,1088064],
+["2026-06-01",38.58,38.50,38.30,39.00,787116],
+["2026-06-02",38.53,38.49,38.23,38.99,752693],
+["2026-06-03",38.50,38.90,38.50,39.20,775798],
+["2026-06-04",38.90,38.73,38.60,39.36,749658],
+["2026-06-05",38.75,39.34,38.75,39.68,1035482],
+["2026-06-08",39.31,38.95,38.95,39.67,631608],
+["2026-06-09",38.98,38.57,38.56,39.14,587356],
+["2026-06-10",38.56,38.23,38.10,38.77,754472],
+["2026-06-11",38.21,37.26,37.25,38.35,1147098],
+["2026-06-12",37.27,37.65,37.10,38.00,942308],
+["2026-06-15",37.63,37.40,37.31,38.10,908564],
+["2026-06-16",37.40,36.76,36.75,37.62,852026],
+["2026-06-17",36.71,36.23,36.16,36.93,915511],
+["2026-06-18",36.20,36.00,35.90,36.70,806726],
+["2026-06-19",36.00,36.42,35.68,36.68,834948],
+["2026-06-22",36.39,35.50,35.40,36.90,1000997],
+["2026-06-23",35.50,35.91,35.41,36.07,1425481],
+["2026-06-24",35.94,36.60,35.94,36.94,1003915],
+["2026-06-25",36.60,36.83,36.50,37.10,882415],
+["2026-06-26",36.91,36.90,36.72,37.20,783976],
+["2026-06-29",35.90,36.42,35.40,36.72,1080735],
+["2026-06-30",36.37,35.50,35.35,36.39,1099038],
+["2026-07-01",35.52,35.91,35.28,36.12,891221],
+["2026-07-02",36.28,36.60,36.13,36.80,944614],
+["2026-07-03",36.67,36.83,36.35,37.06,853124]
+];
+
+var dates = raw.map(function(d){return d[0];});
+var ohlc  = raw.map(function(d){return [d[1], d[4], d[3], d[2]];});
+var closePrices = raw.map(function(d){return d[4];});
+var vols  = raw.map(function(d){return d[5];});
+
+var n = raw.length;
+
+// 均线计算
+function calcMA(data, period) {
+  var r = [];
+  for (var i = 0; i < n; i++) {
+    if (i < period - 1) { r.push(null); continue; }
+    var sum = 0;
+    for (var j = i - period + 1; j <= i; j++) sum += data[j];
+    r.push(Math.round(sum / period * 100) / 100);
+  }
+  return r;
+}
+var ma5  = calcMA(closePrices, 5);
+var ma10 = calcMA(closePrices, 10);
+var ma20 = calcMA(closePrices, 20);
+var ma60 = calcMA(closePrices, 60);
+var volMA5  = calcMA(vols, 5);
+var volMA20 = calcMA(vols, 20);
+
+// 统计
+var startClose = closePrices[0];
+var endClose = closePrices[n-1];
+var chgPct = ((endClose - startClose) / startClose * 100).toFixed(2);
+var highs = raw.map(function(d){return d[2];});
+var lows  = raw.map(function(d){return d[3];});
+var maxHigh = Math.max.apply(null, highs);
+var minLow  = Math.min.apply(null, lows);
+var maxHighDate = dates[highs.indexOf(maxHigh)];
+var minLowDate  = dates[lows.indexOf(minLow)];
+var avgVol = Math.round(vols.reduce(function(a,b){return a+b;},0) / n);
+
+// 涨跌颜色
+var upColor = '#e83939', downColor = '#19a55e';
+var volColors = ohlc.map(function(d){return d[1] >= d[0] ? upColor : downColor;});
+
+// ====== 头部统计 ======
+document.getElementById('statsBar').innerHTML =
+  '<div class="stat-item"><div class="label">数据区间</div><div class="value" style="font-size:13px;">2025-07-03 ~ 2026-07-03</div></div>' +
+  '<div class="stat-item"><div class="label">交易日</div><div class="value" style="font-size:16px;">' + n + ' 天</div></div>' +
+  '<div class="stat-item"><div class="label">起始收盘</div><div class="value">¥' + startClose.toFixed(2) + '</div></div>' +
+  '<div class="stat-item"><div class="label">最新收盘</div><div class="value ' + (chgPct >= 0 ? 'red' : 'green') + '">¥' + endClose.toFixed(2) + '</div></div>' +
+  '<div class="stat-item"><div class="label">区间涨跌</div><div class="value ' + (chgPct >= 0 ? 'red' : 'green') + '">' + (chgPct >= 0 ? '+' : '') + chgPct + '%</div></div>' +
+  '<div class="stat-item"><div class="label">最高</div><div class="value red" style="font-size:15px;">¥' + maxHigh.toFixed(2) + '<div class="sub">' + maxHighDate + '</div></div></div>' +
+  '<div class="stat-item"><div class="label">最低</div><div class="value green" style="font-size:15px;">¥' + minLow.toFixed(2) + '<div class="sub">' + minLowDate + '</div></div></div>' +
+  '<div class="stat-item"><div class="label">日均成交量</div><div class="value" style="font-size:15px;">' + (avgVol/10000).toFixed(0) + ' 万手</div></div>';
+
+// ====== MA 切换按钮 ======
+var maKeys = ['MA5','MA10','MA20','MA60'];
+var maColors = {MA5:'#f5a623', MA10:'#4a90d9', MA20:'#9b59b6', MA60:'#e67e22'};
+var maActive = {MA5:true, MA10:true, MA20:true, MA60:true};
+
+var btnHtml = '';
+maKeys.forEach(function(k){
+  btnHtml += '<button class="btn-sm active" data-ma="' + k + '" onclick="toggleMA(\'' + k + '\')">' + k + '</button>';
+});
+document.getElementById('maToggles').innerHTML = btnHtml;
+
+// ====== 共享 X 轴 & dataZoom ======
+var xAxisCfg = {
+  type: 'category', data: dates,
+  axisLabel: { formatter: function(v){ return v.slice(5); }, fontSize: 10 },
+  axisLine: { lineStyle: { color: '#ddd' } },
+  axisTick: { alignWithLabel: true }
+};
+var zoomCfg = [
+  { type: 'inside', start: 60, end: 100 },
+  { type: 'slider', start: 60, end: 100, height: 22, bottom: 6,
+    borderColor: '#eee', fillerColor: 'rgba(26,41,66,0.08)',
+    handleStyle: { color: '#1a2942' } }
+];
+
+// ====== K 线图 ======
+var klineChart = echarts.init(document.getElementById('klineChart'));
+
+function buildMASeries() {
+  var dataMap = {MA5: ma5, MA10: ma10, MA20: ma20, MA60: ma60};
+  var series = [];
+  maKeys.forEach(function(k){
+    series.push({
+      name: k, type: 'line', data: dataMap[k],
+      smooth: true, symbol: 'none',
+      lineStyle: { width: 1.2, color: maColors[k] },
+      visible: maActive[k]
+    });
+  });
+  return series;
+}
+
+function updateKline() {
+  var series = [{
+    name: '日K', type: 'candlestick', data: ohlc,
+    itemStyle: { color: upColor, color0: downColor, borderColor: upColor, borderColor0: downColor }
+  }].concat(buildMASeries());
+
+  klineChart.setOption({
+    tooltip: {
+      trigger: 'axis', axisPointer: { type: 'cross' },
+      formatter: function(ps){
+        var d = ps[0].axisValue, h = '<strong>' + d + '</strong><br/>';
+        ps.forEach(function(p){
+          if (p.seriesName === '日K' && p.data && p.data.length >= 4) {
+            var v = p.data, c = ((v[1] - v[0]) / v[0] * 100).toFixed(2);
+            var clr = c >= 0 ? upColor : downColor;
+            h += '开: ' + v[0].toFixed(2) + ' 收: <span style="color:' + clr + ';font-weight:700">' + v[1].toFixed(2) + '</span><br/>';
+            h += '低: ' + v[2].toFixed(2) + ' 高: ' + v[3].toFixed(2) + ' (' + (c>=0?'+':'') + c + '%)<br/>';
+          } else if (p.value != null) {
+            h += p.seriesName + ': ' + p.value.toFixed(2) + '<br/>';
+          }
+        });
+        return h;
+      }
+    },
+    legend: { data: ['日K'].concat(maKeys), bottom: 0, itemWidth: 14, itemHeight: 8, textStyle: { fontSize: 11 } },
+    grid: { left: '6%', right: '3%', top: '3%', height: '65%' },
+    xAxis: xAxisCfg,
+    yAxis: { scale: true, splitLine: { lineStyle: { color: '#f5f5f5' } },
+      axisLabel: { formatter: '¥{value}' } },
+    dataZoom: zoomCfg,
+    series: series
+  });
+}
+updateKline();
+
+// ====== 成交量图 ======
+var volChart = echarts.init(document.getElementById('volumeChart'));
+volChart.setOption({
+  tooltip: {
+    trigger: 'axis',
+    formatter: function(ps){
+      var v = ps[0].value;
+      return '<strong>' + ps[0].axisValue + '</strong><br/>成交量: ' + (v/10000).toFixed(2) + ' 万手';
+    }
+  },
+  grid: { left: '6%', right: '3%', top: '8%', height: '65%' },
+  xAxis: xAxisCfg,
+  yAxis: {
+    scale: true, splitLine: { lineStyle: { color: '#f5f5f5' } },
+    axisLabel: { formatter: function(v){ return (v/10000).toFixed(0) + '万'; } }
+  },
+  dataZoom: zoomCfg,
+  series: [
+    {
+      type: 'bar', name: '成交量',
+      data: vols.map(function(v,i){ return { value: v, itemStyle: { color: volColors[i] } }; })
+    },
+    {
+      name: 'VOL MA5', type: 'line', data: volMA5,
+      smooth: true, symbol: 'none',
+      lineStyle: { width: 1, color: '#f5a623' }
+    },
+    {
+      name: 'VOL MA20', type: 'line', data: volMA20,
+      smooth: true, symbol: 'none',
+      lineStyle: { width: 1, color: '#9b59b6' }
+    }
+  ]
+});
+
+// ====== MA 切换 ======
+window.toggleMA = function(ma) {
+  maActive[ma] = !maActive[ma];
+  var btn = document.querySelector('[data-ma="' + ma + '"]');
+  if (maActive[ma]) { btn.classList.add('active'); }
+  else { btn.classList.remove('active'); }
+  updateKline();
+};
+
+// ====== 联动缩放 ======
+klineChart.on('dataZoom', function(params){
+  var opt = volChart.getOption();
+  opt.dataZoom[0].start = params.start;
+  opt.dataZoom[0].end = params.end;
+  opt.dataZoom[1].start = params.start;
+  opt.dataZoom[1].end = params.end;
+  volChart.setOption(opt);
+});
+volChart.on('dataZoom', function(params){
+  var opt = klineChart.getOption();
+  opt.dataZoom[0].start = params.start;
+  opt.dataZoom[0].end = params.end;
+  opt.dataZoom[1].start = params.start;
+  opt.dataZoom[1].end = params.end;
+  klineChart.setOption(opt);
+});
+
+// ====== 响应式 ======
+window.addEventListener('resize', function(){
+  klineChart.resize(); volChart.resize();
+});
+</script>
+
+</body>
+</html>
