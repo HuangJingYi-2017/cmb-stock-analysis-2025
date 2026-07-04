@@ -673,15 +673,18 @@ fetch('data/cmb_2025_compact.json')
   .then(function(json){
     D = process(json);
     renderUI();
+
+    // 先显示主容器，再渲染图表，确保容器有正确宽度
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = '';
+    document.getElementById('update-date').textContent = new Date().toISOString().slice(0,10);
+
+    // 渲染所有图表（此时容器已可见，ECharts 能获取正确尺寸）
     renderClose();
     renderKline();
     renderRSI();
     renderMACD();
     renderBoll();
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('main').style.display = '';
-    document.getElementById('update-date').textContent = new Date().toISOString().slice(0,10);
 
     window.addEventListener('resize', function(){
       for (var k in chartInstances) { if (chartInstances[k]) chartInstances[k].resize(); }
