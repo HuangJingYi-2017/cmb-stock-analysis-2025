@@ -3,8 +3,10 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Build scripts
+# Build scripts (contain credentials)
 gen_compare.py
+fetch_cmb_data.py
 
 # Project data
 .workbuddy/
+dist/
