@@ -6,6 +6,7 @@ __pycache__/
 # Build scripts (contain credentials)
 gen_compare.py
 fetch_cmb_data.py
+calc_indicators.py
 
 # Project data
 .workbuddy/

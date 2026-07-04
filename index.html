@@ -181,163 +181,18 @@ var currentTab = 'close';
 // ============================================================
 // Utility functions
 // ============================================================
-function fmtNum(n, d) { d = d || 0; return Number(n).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 function fmtVol(v) { return (v / 10000).toFixed(0) + ' 万手'; }
 
 // ============================================================
-// Technical Indicator Calculations
-// ============================================================
-
-// Simple Moving Average
-function calcSMA(data, period) {
-  var result = new Array(data.length).fill(null);
-  for (var i = period - 1; i < data.length; i++) {
-    var sum = 0;
-    for (var j = i - period + 1; j <= i; j++) sum += data[j];
-    result[i] = Math.round(sum / period * 100) / 100;
-  }
-  return result;
-}
-
-// Exponential Moving Average
-function calcEMA(data, period) {
-  var result = new Array(data.length).fill(null);
-  var k = 2 / (period + 1);
-  // First EMA = SMA for the first 'period' elements
-  var firstIdx = period - 1;
-  if (firstIdx < data.length) {
-    var sum = 0;
-    for (var j = 0; j < period; j++) sum += data[j];
-    result[firstIdx] = sum / period;
-    for (var i = firstIdx + 1; i < data.length; i++) {
-      result[i] = data[i] * k + result[i-1] * (1 - k);
-      result[i] = Math.round(result[i] * 100) / 100;
-    }
-  }
-  return result;
-}
-
-// RSI (Wilder's smoothing)
-function calcRSI(data, period) {
-  period = period || 14;
-  var gains = new Array(data.length).fill(0);
-  var losses = new Array(data.length).fill(0);
-  for (var i = 1; i < data.length; i++) {
-    var diff = data[i] - data[i-1];
-    if (diff > 0) { gains[i] = diff; losses[i] = 0; }
-    else { gains[i] = 0; losses[i] = -diff; }
-  }
-  var avgGain = new Array(data.length).fill(null);
-  var avgLoss = new Array(data.length).fill(null);
-  var rsi = new Array(data.length).fill(null);
-
-  // Initial average
-  var firstIdx = period;
-  if (firstIdx < data.length) {
-    var sumGain = 0, sumLoss = 0;
-    for (var i = 1; i <= period; i++) { sumGain += gains[i]; sumLoss += losses[i]; }
-    avgGain[firstIdx] = sumGain / period;
-    avgLoss[firstIdx] = sumLoss / period;
-    if (avgLoss[firstIdx] === 0) {
-      rsi[firstIdx] = 100;
-    } else {
-      var rs = avgGain[firstIdx] / avgLoss[firstIdx];
-      rsi[firstIdx] = Math.round((100 - 100 / (1 + rs)) * 100) / 100;
-    }
-    // Subsequent
-    for (var i = firstIdx + 1; i < data.length; i++) {
-      avgGain[i] = (avgGain[i-1] * (period - 1) + gains[i]) / period;
-      avgLoss[i] = (avgLoss[i-1] * (period - 1) + losses[i]) / period;
-      if (avgLoss[i] === 0) {
-        rsi[i] = 100;
-      } else {
-        var rs2 = avgGain[i] / avgLoss[i];
-        rsi[i] = Math.round((100 - 100 / (1 + rs2)) * 100) / 100;
-      }
-    }
-  }
-  return rsi;
-}
-
-// MACD
-function calcMACD(data, fast, slow, signal) {
-  fast = fast || 12; slow = slow || 26; signal = signal || 9;
-  var emaFast = calcEMA(data, fast);
-  var emaSlow = calcEMA(data, slow);
-  var dif = new Array(data.length).fill(null);
-  var dea, macd, hist;
-
-  for (var i = 0; i < data.length; i++) {
-    if (emaFast[i] !== null && emaSlow[i] !== null) {
-      dif[i] = Math.round((emaFast[i] - emaSlow[i]) * 100) / 100;
-    }
-  }
-
-  // DEA = EMA of DIF
-  var deaRaw = [];
-  var difStart = -1;
-  for (var i = 0; i < data.length; i++) {
-    if (dif[i] !== null) { deaRaw.push(dif[i]); if (difStart === -1) difStart = i; }
-    else { deaRaw.push(null); }
-  }
-
-  // Compact DIF without nulls
-  var difVals = [];
-  var difIndices = [];
-  for (var i = 0; i < data.length; i++) {
-    if (dif[i] !== null) { difVals.push(dif[i]); difIndices.push(i); }
-  }
-
-  var emaSignal = calcEMA(difVals, signal);
-  dea = new Array(data.length).fill(null);
-  for (var i = 0; i < emaSignal.length; i++) {
-    dea[difIndices[i]] = emaSignal[i];
-  }
-
-  // MACD histogram
-  macd = new Array(data.length).fill(null);
-  for (var i = 0; i < data.length; i++) {
-    if (dif[i] !== null && dea[i] !== null) {
-      macd[i] = Math.round((dif[i] - dea[i]) * 100) / 100;
-    }
-  }
-
-  return { dif: dif, dea: dea, macd: macd };
-}
-
-// Bollinger Bands
-function calcBollinger(data, period, multiplier) {
-  period = period || 20; multiplier = multiplier || 2;
-  var middle = calcSMA(data, period);
-  var upper = new Array(data.length).fill(null);
-  var lower = new Array(data.length).fill(null);
-
-  for (var i = period - 1; i < data.length; i++) {
-    var sum = 0;
-    for (var j = i - period + 1; j <= i; j++) sum += data[j];
-    var mean = sum / period;
-    var sqSum = 0;
-    for (var j = i - period + 1; j <= i; j++) sqSum += Math.pow(data[j] - mean, 2);
-    var std = Math.sqrt(sqSum / period);
-    upper[i] = Math.round((mean + multiplier * std) * 100) / 100;
-    lower[i] = Math.round((mean - multiplier * std) * 100) / 100;
-  }
-  return { middle: middle, upper: upper, lower: lower };
-}
-
-// ============================================================
-// Data Processing
+// Data Processing (使用 Python 预计算的指标)
 // ============================================================
 function processData(raw) {
-  // Already sorted by date ascending
-  var dates = [];
-  var closes = [];
-  var opens = [];
-  var highs = [];
-  var lows = [];
-  var vols = [];
-  var amounts = [];
-  var ohlc = [];
+  var dates = [], closes = [], opens = [], highs = [], lows = [], vols = [], amounts = [], ohlc = [];
+  // 预计算指标数组
+  var ma5 = [], ma10 = [], ma20 = [];
+  var rsiArr = [];
+  var difArr = [], deaArr = [], macdArr = [];
+  var bbU = [], bbM = [], bbL = [];
 
   raw.forEach(function(r) {
     dates.push(r.d);
@@ -348,15 +203,18 @@ function processData(raw) {
     vols.push(r.v);
     amounts.push(r.amt);
     ohlc.push([r.o, r.c, r.l, r.h]);
+    // 读取 Python 预计算指标
+    ma5.push(r.ma5  != null ? Math.round(r.ma5  * 100) / 100 : null);
+    ma10.push(r.ma10 != null ? Math.round(r.ma10 * 100) / 100 : null);
+    ma20.push(r.ma20 != null ? Math.round(r.ma20 * 100) / 100 : null);
+    rsiArr.push(r.rsi  != null ? Math.round(r.rsi  * 100) / 100 : null);
+    difArr.push(r.dif  != null ? Math.round(r.dif  * 10000) / 10000 : null);
+    deaArr.push(r.dea  != null ? Math.round(r.dea  * 10000) / 10000 : null);
+    macdArr.push(r.macd != null ? Math.round(r.macd * 10000) / 10000 : null);
+    bbU.push(r.bb_u  != null ? Math.round(r.bb_u * 100) / 100 : null);
+    bbM.push(r.bb_m  != null ? Math.round(r.bb_m * 100) / 100 : null);
+    bbL.push(r.bb_l  != null ? Math.round(r.bb_l * 100) / 100 : null);
   });
-
-  // Compute indicators
-  var ma5   = calcSMA(closes, 5);
-  var ma10  = calcSMA(closes, 10);
-  var ma20  = calcSMA(closes, 20);
-  var rsi   = calcRSI(closes, 14);
-  var macd  = calcMACD(closes, 12, 26, 9);
-  var boll  = calcBollinger(closes, 20, 2);
 
   // Color arrays
   var volColors = [];
@@ -398,9 +256,9 @@ function processData(raw) {
     amounts: amounts,
     ohlc: ohlc,
     ma5: ma5, ma10: ma10, ma20: ma20,
-    rsi: rsi,
-    macd: macd,
-    boll: boll,
+    rsi: rsiArr,
+    macd: { dif: difArr, dea: deaArr, macd: macdArr },
+    boll: { middle: bbM, upper: bbU, lower: bbL },
     volColors: volColors,
     changeColors: changeColors,
     stats: {
