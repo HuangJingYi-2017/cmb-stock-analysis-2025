@@ -225,6 +225,87 @@ body {
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* ============================================================
+   TASK3 双均线回测
+   ============================================================ */
+.task3-section-num {
+  display: inline-block;
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32px;
+  font-size: 14px; font-weight: 700;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 12px;
+}
+.metric-item {
+  background: #faf9f7;
+  border: 1px solid #ede9e3;
+  border-radius: 8px;
+  padding: 16px;
+}
+.metric-item .m-label {
+  font-size: 11px; color: #999; letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.metric-item .m-value {
+  font-size: 18px; font-weight: 700; color: #2c3e50;
+}
+.metric-item .m-value.pos { color: #e74c3c; }
+.metric-item .m-value.neg { color: #27ae60; }
+.img-card {
+  background: #faf9f7;
+  border: 1px solid #ede9e3;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.img-card img {
+  width: 100%; max-width: 100%; border-radius: 6px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+.img-caption {
+  margin-top: 12px;
+  font-size: 12px; color: #888; line-height: 1.7;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 6px;
+  border-left: 3px solid #f39c12;
+}
+.compare-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; margin-top: 8px;
+}
+.compare-table th {
+  background: #2c3e50; color: #fff;
+  padding: 10px 12px; text-align: center;
+  font-weight: 600; font-size: 12px;
+}
+.compare-table td {
+  padding: 10px 12px; text-align: center;
+  border-bottom: 1px solid #ede9e3;
+}
+.compare-table tr:nth-child(even) td { background: #faf9f7; }
+.compare-table .best-row td { background: #fff9e6; font-weight: 600; }
+.compare-table .pos { color: #e74c3c; }
+.compare-table .neg { color: #27ae60; }
+.risk-note {
+  margin-top: 8px;
+  padding: 14px 18px;
+  background: #fff3e0;
+  border-left: 4px solid #f39c12;
+  border-radius: 6px;
+  font-size: 13px; color: #8a6d3b;
+  line-height: 1.8;
+}
+
+/* ============================================================
    响应式
    ============================================================ */
 @media (max-width: 768px) {
@@ -235,6 +316,7 @@ body {
   #chart-kline,
   #chart-macd { height: 380px; }
   .overview-grid, .ma-grid { grid-template-columns: repeat(2,1fr); }
+  .metrics-grid { grid-template-columns: repeat(2,1fr); }
 }
 </style>
 </head>
@@ -354,9 +436,102 @@ body {
     </div>
   </div>
 
+  <!-- ========== 9. TASK3 双均线交易策略回测 ========== -->
+  <div class="card">
+    <div class="section-heading"><span class="task3-section-num">T3</span>TASK3 双均线交易策略回测</div>
+
+    <!-- -------- 9.1 策略原理 -------- -->
+    <h4 style="font-size:15px;color:#2c3e50;margin:20px 0 10px;">策略原理</h4>
+    <div class="summary-text">
+      <p>
+        <b>双均线策略</b>是一种基于趋势跟踪的量化交易方法。核心思路是：比较两条不同周期的移动平均线（MA），当短期均线上穿长期均线时说明短期趋势开始强于长期趋势，产生买入信号；反之产生卖出信号。
+      </p>
+      <p style="margin-top:6px;">
+        本次回测使用 <b>MA5（5 日均线）</b>作为短期均线和 <b>MA15（15 日均线）</b>作为长期均线：
+        <br>• <b>金叉（买入信号）</b>：MA5 从下方向上穿过 MA15
+        <br>• <b>死叉（卖出信号）</b>：MA5 从上方向下穿过 MA15
+        <br>• 信号在当日收盘后产生，持仓从下一交易日开始生效（已控制未来函数）
+      </p>
+    </div>
+
+    <!-- -------- 9.2 回测结果摘要 -------- -->
+    <h4 style="font-size:15px;color:#2c3e50;margin:24px 0 10px;">回测结果摘要</h4>
+    <div class="metrics-grid">
+      <div class="metric-item"><div class="m-label">回测区间</div><div class="m-value" style="font-size:14px;">2025-01-22 ~ 2025-12-31</div></div>
+      <div class="metric-item"><div class="m-label">有效交易天数</div><div class="m-value" style="font-size:16px;">229 天</div></div>
+      <div class="metric-item"><div class="m-label">买入信号次数</div><div class="m-value pos">7 次</div></div>
+      <div class="metric-item"><div class="m-label">卖出信号次数</div><div class="m-value neg">7 次</div></div>
+      <div class="metric-item"><div class="m-label">策略累计收益率</div><div class="m-value neg">-10.15%</div></div>
+      <div class="metric-item"><div class="m-label">买入持有收益率</div><div class="m-value pos">+9.32%</div></div>
+      <div class="metric-item"><div class="m-label">年化收益率</div><div class="m-value neg">-14.36%</div></div>
+      <div class="metric-item"><div class="m-label">年化波动率</div><div class="m-value">13.11%</div></div>
+      <div class="metric-item"><div class="m-label">最大回撤 MDD</div><div class="m-value neg">-12.85%</div></div>
+      <div class="metric-item"><div class="m-label">夏普比率</div><div class="m-value neg">-1.10</div></div>
+      <div class="metric-item"><div class="m-label">日胜率</div><div class="m-value">45.45%</div></div>
+      <div class="metric-item"><div class="m-label">回测标的</div><div class="m-value" style="font-size:14px;">招商银行 600036.SH</div></div>
+    </div>
+
+    <!-- -------- 9.3 关键指标解释 -------- -->
+    <h4 style="font-size:15px;color:#2c3e50;margin:24px 0 10px;">关键指标解释</h4>
+    <div class="summary-text">
+      <p><b>累计回报</b>：策略从开始到结束的总收益率。本次策略累计回报 <b style="color:#27ae60;">-10.15%</b>，低于买入持有的 <b style="color:#e74c3c;">+9.32%</b>。</p>
+      <p style="margin-top:6px;"><b>最大回撤 MDD</b>：策略净值从历史最高点到最低点的最大跌幅。本次 MDD 为 <b style="color:#27ae60;">-12.85%</b>，反映策略在持有期间承受的最大亏损幅度。</p>
+      <p style="margin-top:6px;"><b>夏普比率</b>：衡量单位风险所带来的超额回报。本次夏普比率为 <b style="color:#27ae60;">-1.10</b>，负值表示承担风险后并未获得正收益。通常夏普比率大于 0 才说明策略具有一定的风险调整后收益能力。</p>
+    </div>
+
+    <!-- -------- 9.4 图表展示 -------- -->
+    <h4 style="font-size:15px;color:#2c3e50;margin:24px 0 10px;">图表展示</h4>
+    <div class="img-card">
+      <img src="data/fig1_ma_signals.png" alt="收盘价与均线信号" loading="lazy">
+      <div class="img-caption">
+        <b>图 9-1：收盘价与双均线交易信号</b><br>
+        黑色线为收盘价，橙色线为 MA5，蓝色线为 MA15。<b style="color:#c0392b;">红色 ▲</b>标记金叉买入点，<b style="color:#27ae60;">绿色 ▼</b>标记死叉卖出点。2025 年招商银行股价在 38~48 元区间宽幅震荡。
+      </div>
+    </div>
+    <div class="img-card">
+      <img src="data/fig2_strategy_value.png" alt="策略累计净值" loading="lazy">
+      <div class="img-caption">
+        <b>图 9-2：策略累计净值曲线</b><br>
+        红色实线为策略净值，灰色虚线为买入持有净值。策略净值在震荡中逐步走低，最终低于买入持有净值。
+      </div>
+    </div>
+
+    <!-- -------- 9.5 不同均线周期对比 -------- -->
+    <h4 style="font-size:15px;color:#2c3e50;margin:24px 0 10px;">不同均线周期对比</h4>
+    <div style="overflow-x:auto;">
+      <table class="compare-table">
+        <thead><tr>
+          <th>参数组合</th><th>策略收益</th><th>年化收益</th><th>夏普比率</th><th>最大回撤</th><th>交易次数</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>MA5 / MA15</td><td class="neg">-10.15%</td><td class="neg">-11.11%</td><td class="neg">-0.97</td><td class="neg">-12.85%</td><td>7 买 / 7 卖</td></tr>
+          <tr><td>MA5 / MA20</td><td class="neg">-5.88%</td><td class="neg">-6.60%</td><td class="neg">-0.56</td><td class="neg">-12.92%</td><td>6 买 / 7 卖</td></tr>
+          <tr><td>MA5 / MA30</td><td class="neg">-2.72%</td><td class="neg">-3.19%</td><td class="neg">-0.29</td><td class="neg">-11.67%</td><td>3 买 / 4 卖</td></tr>
+          <tr class="best-row"><td>MA10 / MA30</td><td class="pos">+1.88%</td><td class="pos">+2.22%</td><td class="pos">+0.19</td><td class="neg">-9.64%</td><td>2 买 / 3 卖</td></tr>
+          <tr><td>MA10 / MA60</td><td class="neg">-3.00%</td><td class="neg">-4.08%</td><td class="neg">-0.35</td><td class="neg">-10.90%</td><td>2 买 / 3 卖</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-note" style="margin-top:10px;">
+      对比发现：<b>MA10/MA30</b>（高亮行）表现最优，策略收益转正（+1.88%），夏普比率唯一为正（+0.19）。宽间距参数能减少震荡中的虚假信号，但间距过宽又会因滞后错失趋势收益。
+    </div>
+
+    <!-- -------- 9.6 回测结论 -------- -->
+    <h4 style="font-size:15px;color:#2c3e50;margin:24px 0 10px;">回测结论</h4>
+    <div class="summary-text">
+      <p>本次 MA5/MA15 双均线策略在招商银行 2025 年数据上的表现不如买入持有策略。原因是招商银行 2025 年股价处于 <b>宽幅震荡区间</b>（38~48 元），均线频繁交叉导致策略多次进出场，但未能形成持续的上涨趋势收益。这说明双均线策略更适合趋势较明显的行情，在震荡行情中容易出现误判。</p>
+      <p style="margin-top:6px;">从参数对比来看，适当拉宽短期与长期均线的间距（如 MA10/MA30）可以有效降低交易频率、提升表现，但无法从根本上改变趋势跟踪策略在震荡市场中的固有劣势。在实际应用中，通常需要结合其他指标或市场环境判断来辅助决策。</p>
+    </div>
+
+    <!-- -------- 风险提示 -------- -->
+    <div class="risk-note">
+      <b>风险提示：</b>本页面内容仅用于课程作业和量化策略学习展示，不构成任何投资建议。所有回测结果均基于历史数据，过去的表现不代表未来的结果。
+    </div>
+  </div>
+
   <!-- ========== 10. 总结 ========== -->
   <div class="card">
-    <div class="section-heading"><span class="section-num">9</span>总结</div>
+    <div class="section-heading"><span class="section-num">10</span>总结</div>
     <div class="summary-text">
       <p>
         本页面基于招商银行 600036.SH 在 <b>2025 年全年</b>的 243 个交易日数据，
