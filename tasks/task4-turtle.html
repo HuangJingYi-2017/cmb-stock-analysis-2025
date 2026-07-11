@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>海龟法则回测 | AI Quant Lab</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="task-page">
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">◆</div>
+        <span>AI Quant Lab</span>
+      </a>
+      <nav class="main-nav">
+        <a href="task2-indicators.html"><span class="icon">📊</span>指标实验室</a>
+        <a href="task4-turtle.html" class="active"><span class="icon">🐢</span>海龟法则</a>
+        <a href="task3-ma-cross.html"><span class="icon">📈</span>均线交叉</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="task-container">
+    <aside class="sidebar">
+      <div class="stock-info">
+        <div class="name">当前回测标的</div>
+        <div class="code">招商银行 · 600036.SH</div>
+        <div class="meta">回测区间：2025-01-02 ~ 2026-07-10<br>367 个交易日</div>
+      </div>
+
+      <h2>策略参数</h2>
+
+      <div class="control-group">
+        <label>通道周期</label>
+        <select disabled>
+          <option>20 日</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>ATR 周期</label>
+        <select disabled>
+          <option>20 日</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>止损倍数</label>
+        <select disabled>
+          <option>2 × ATR</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>买入规则</label>
+        <div style="font-size:13px;color:#6b7280;line-height:1.8;">
+          close > 过去 20 日 high 最高值 → 买入
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>卖出规则</label>
+        <div style="font-size:13px;color:#6b7280;line-height:1.8;">
+          close < 过去 20 日 low 最低值 或 close < 止损价 → 卖出
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>防未来函数</label>
+        <div style="font-size:13px;color:#6b7280;line-height:1.8;">
+          通道使用 shift(1)，ATR 止损基于买入当天价格计算，策略收益使用 position.shift(1)
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>相关资料</label>
+        <div style="font-size:13px;line-height:1.8;">
+          <a href="../reports/task4_turtle_report.md" style="color:#10b981;">📄 完整回测报告</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-title">
+        <h1>Turtle Trading Backtest</h1>
+        <p class="subtitle">经典海龟交易法回测：20 日通道突破 + 2 倍 ATR 止损</p>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="label">策略累计回报</div>
+          <div class="value down">-6.75%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">买入持有回报</div>
+          <div class="value down">-4.23%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">最大回撤 MDD</div>
+          <div class="value down">-15.66%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">夏普比率</div>
+          <div class="value down">-0.32</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">交易次数</div>
+          <div class="value neutral small">5 次</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">止损次数</div>
+          <div class="value neutral small">2 次</div>
+        </div>
+      </div>
+
+      <div class="image-grid">
+        <div class="image-card">
+          <div class="caption">图1：20 日通道与买卖/止损信号</div>
+          <img src="../assets/img/task4_fig1_turtle_signals.png" alt="海龟策略信号">
+        </div>
+        <div class="image-card">
+          <div class="caption">图2：策略累计净值 vs 买入持有净值</div>
+          <img src="../assets/img/task4_fig2_turtle_equity.png" alt="海龟策略净值">
+        </div>
+        <div class="image-card">
+          <div class="caption">图3：策略回撤曲线与最大回撤</div>
+          <img src="../assets/img/task4_fig3_turtle_drawdown.png" alt="海龟策略回撤">
+        </div>
+        <div class="image-card">
+          <div class="caption">图4：不同通道周期参数对比</div>
+          <img src="../assets/img/task4_fig4_turtle_parameter_comparison.png" alt="参数对比">
+        </div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <div class="panel-title">参数对比表</div>
+        </div>
+        <table class="data-table param-table">
+          <thead>
+            <tr>
+              <th>通道周期</th>
+              <th>累计回报</th>
+              <th>最大回撤</th>
+              <th>夏普比率</th>
+              <th>交易次数</th>
+              <th>止损次数</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>10 日</td>
+              <td class="num negative">-9.68%</td>
+              <td class="num negative">-18.32%</td>
+              <td class="num negative">-0.52</td>
+              <td class="num">8</td>
+              <td class="num">0</td>
+            </tr>
+            <tr style="background:#f0fdf4;">
+              <td><strong>20 日</strong></td>
+              <td class="num negative"><strong>-6.75%</strong></td>
+              <td class="num negative"><strong>-15.66%</strong></td>
+              <td class="num negative"><strong>-0.32</strong></td>
+              <td class="num"><strong>5</strong></td>
+              <td class="num"><strong>2</strong></td>
+            </tr>
+            <tr>
+              <td>30 日</td>
+              <td class="num negative">-13.19%</td>
+              <td class="num negative">-19.09%</td>
+              <td class="num negative">-0.80</td>
+              <td class="num">4</td>
+              <td class="num">3</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="report-section">
+        <h2>海龟策略回测结论</h2>
+        <p>
+          本次回测基于招商银行 600036.SH 2025 年 1 月 2 日至 2026 年 7 月 10 日共 367 个交易日的日线数据，
+          复现了经典海龟交易系统。策略使用 20 日高低点通道作为入场和出场条件，以 2 倍 ATR 作为止损保护。
+          所有信号计算均使用 <code>shift(1)</code> 避免未来函数，即今天的突破判断基于过去 20 日数据，不包含今天自身的价格。
+        </p>
+        <p>
+          回测期间，招商银行整体处于下行通道，策略累计回报为 <strong>-6.75%</strong>，买入持有回报为 <strong>-4.23%</strong>，
+          策略在绝对收益上略逊于买入持有。但策略的最大回撤（<strong>-15.66%</strong>）显著低于买入持有（<strong>-26.41%</strong>），
+          年化波动率（12.62%）也低于买入持有（18.27%）。这说明海龟策略在控制下行风险方面发挥了作用。
+        </p>
+        <p>
+          参数对比显示，20 日通道在本段行情中综合表现最优：10 日通道交易过于频繁（8 次）且未触发止损，
+          30 日通道信号滞后导致止损率过高（3/4 笔）。20 日通道在交易频率、回撤控制和夏普比率之间取得了相对平衡。
+        </p>
+        <div class="highlight-box">
+          关键提示：海龟策略在趋势明显的行情中表现较好，在震荡或下行趋势中可能产生假突破。止损机制是控制风险的核心，参数回测是策略优化的重要步骤。
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>AI Quant Lab · 量化交易课程项目 · 仅供学习使用</p>
+  </footer>
+
+  <script src="../assets/js/task4-turtle.js"></script>
+</body>
+</html>

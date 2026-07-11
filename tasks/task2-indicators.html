@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>指标实验室 | AI Quant Lab</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body class="task-page">
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">◆</div>
+        <span>AI Quant Lab</span>
+      </a>
+      <nav class="main-nav">
+        <a href="task2-indicators.html" class="active"><span class="icon">📊</span>指标实验室</a>
+        <a href="task4-turtle.html"><span class="icon">🐢</span>海龟法则</a>
+        <a href="task3-ma-cross.html"><span class="icon">📈</span>均线交叉</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="task-container">
+    <aside class="sidebar">
+      <div class="stock-info">
+        <div class="name">当前分析标的</div>
+        <div class="code">招商银行 · 600036.SH</div>
+        <div class="meta">数据区间：2025-01-02 ~ 2025-12-31<br>日线数据 + 技术指标</div>
+      </div>
+
+      <h2>指标显示控制</h2>
+
+      <div class="control-group">
+        <label>布林带 (BOLL)</label>
+        <div class="toggle-list">
+          <label class="toggle-item">显示布林带 <input type="checkbox" id="toggleBoll" checked></label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>移动平均线 (MA)</label>
+        <div class="toggle-list">
+          <label class="toggle-item">MA5 <input type="checkbox" id="toggleMa5" checked></label>
+          <label class="toggle-item">MA10 <input type="checkbox" id="toggleMa10"></label>
+          <label class="toggle-item">MA20 <input type="checkbox" id="toggleMa20"></label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>成交量 (Volume)</label>
+        <div class="toggle-list">
+          <label class="toggle-item">显示成交量 <input type="checkbox" id="toggleVolume" checked></label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>下方副图</label>
+        <div class="toggle-list">
+          <span style="font-size:13px;color:#6b7280;">RSI 相对强弱指标</span>
+          <span style="font-size:13px;color:#6b7280;">MACD 异同移动平均线</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-title">
+        <h1>Indicator Lab Interactive</h1>
+        <p class="subtitle">交互式技术指标分析：布林带、移动平均线、RSI、MACD</p>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="label">最新收盘价</div>
+          <div class="value neutral">46.09</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">年内涨跌幅</div>
+          <div class="value up">+19.69%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">RSI14</div>
+          <div class="value neutral">68.5</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">MACD</div>
+          <div class="value up">+0.68</div>
+        </div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <div class="panel-title">价格走势 · 布林带 · 移动平均线</div>
+        </div>
+        <div id="priceChart" class="chart-container"></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <div class="panel-title">RSI 相对强弱指标</div>
+        </div>
+        <div id="rsiChart" class="chart-container small"></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <div class="panel-title">MACD 异同移动平均线</div>
+        </div>
+        <div id="macdChart" class="chart-container small"></div>
+      </div>
+
+      <div class="report-section">
+        <h2>指标分析说明</h2>
+        <p>
+          本页面展示招商银行 600036.SH 在 2025 年的日线走势与常用技术指标。价格主图叠加了布林带（BOLL）和移动平均线（MA5/MA10/MA20），
+          副图分别为 RSI 相对强弱指标和 MACD 异同移动平均线。
+        </p>
+        <p>
+          布林带通过 20 日移动平均线和 2 倍标准差构建上轨、中轨、下轨，可用于判断价格波动范围和相对高低位。
+          RSI 取值范围 0~100，通常高于 70 视为超买区域，低于 30 视为超卖区域。
+          MACD 由 DIF 和 DEA 两条线以及 MACD 柱状图构成，可用于识别趋势方向和动量变化。
+        </p>
+        <div class="highlight-box">
+          注：左侧控制栏可以实时开关布林带、不同周期均线和成交量，所有计算均在前端完成。
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>AI Quant Lab · 量化交易课程项目 · 仅供学习使用</p>
+  </footer>
+
+  <script src="../assets/js/task2-indicators.js"></script>
+</body>
+</html>

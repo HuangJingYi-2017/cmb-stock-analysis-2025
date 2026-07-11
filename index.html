@@ -1,701 +1,116 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>招商银行 2025 年股票数据分析</title>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
-<style>
-/* ============================================================
-   全局
-   ============================================================ */
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #f5f3ef;
-  color: #2c3e50;
-  line-height:1.7;
-}
-
-/* ============================================================
-   头部
-   ============================================================ */
-.header {
-  background: linear-gradient(160deg, #2c3e50 0%, #34495e 60%, #3d566e 100%);
-  color: #fff;
-  text-align: center;
-  padding: 48px 24px 40px;
-  position: relative;
-  overflow: hidden;
-}
-.header::before {
-  content: '';
-  position: absolute;
-  top: -60%; left: -20%;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(243,156,18,0.08) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.header h1 {
-  font-size: 30px; font-weight: 700; letter-spacing: 1px;
-  position: relative; z-index: 1;
-}
-.header .en-sub {
-  font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.55);
-  margin-top: 4px; position: relative; z-index: 1;
-}
-.header .desc {
-  font-size: 13px; color: rgba(255,255,255,0.6);
-  margin-top: 14px; max-width: 580px; margin-left: auto; margin-right: auto;
-  position: relative; z-index: 1; line-height: 1.8;
-}
-
-/* ============================================================
-   容器
-   ============================================================ */
-.container {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* ============================================================
-   卡片
-   ============================================================ */
-.card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px 30px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  border: 1px solid #eae6e0;
-}
-
-/* ============================================================
-   分区标题
-   ============================================================ */
-.section-num {
-  display: inline-block;
-  width: 32px; height: 32px;
-  background: #f39c12;
-  color: #fff;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 32px;
-  font-size: 14px; font-weight: 700;
-  margin-right: 10px;
-  vertical-align: middle;
-}
-.section-heading {
-  font-size: 18px; font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 18px;
-  display: flex; align-items: center;
-}
-
-/* ============================================================
-   数据概览 — 双列网格
-   ============================================================ */
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-  gap: 12px;
-}
-.ov-item {
-  background: #faf9f7;
-  border: 1px solid #ede9e3;
-  border-radius: 8px;
-  padding: 14px 16px;
-}
-.ov-item .ov-label {
-  font-size: 11px; color: #999; letter-spacing: 0.3px;
-  margin-bottom: 4px; text-transform: uppercase;
-}
-.ov-item .ov-value {
-  font-size: 18px; font-weight: 700; color: #2c3e50;
-}
-.ov-item .ov-value.up   { color: #e74c3c; }
-.ov-item .ov-value.down { color: #27ae60; }
-.ov-item .ov-sub {
-  font-size: 11px; color: #aaa; margin-top: 2px;
-}
-
-/* ============================================================
-   数据诊断
-   ============================================================ */
-.diag-list {
-  list-style: none;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.diag-list li {
-  display: flex; align-items: flex-start; gap: 10px;
-  font-size: 14px; color: #555;
-}
-.diag-icon-ok    { color: #27ae60; font-weight: 700; font-size: 16px; }
-.diag-icon-info  { color: #f39c12; font-weight: 700; font-size: 16px; }
-.diag-result {
-  margin-top: 14px; padding: 14px 18px;
-  background: #f0f9f4;
-  border-left: 4px solid #27ae60;
-  border-radius: 6px;
-  font-size: 13px; color: #2c3e50; line-height: 1.8;
-}
-
-/* ============================================================
-   图表通用
-   ============================================================ */
-.chart-wrap {
-  width: 100%;
-}
-.chart-canvas {
-  width: 100%;
-  height: 420px;
-}
-/* K 线图和 MACD 图信息更多，给更高 */
-#chart-kline,
-#chart-macd {
-  height: 480px;
-}
-.chart-note {
-  margin-top: 10px;
-  padding: 10px 14px;
-  background: #faf9f7;
-  border-radius: 6px;
-  font-size: 12px; color: #888; line-height: 1.7;
-}
-.chart-note b { color: #555; }
-
-/* ============================================================
-   均线说明卡片
-   ============================================================ */
-.ma-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-  gap: 12px;
-}
-.ma-card {
-  background: #faf9f7;
-  border: 1px solid #ede9e3;
-  border-radius: 8px;
-  padding: 16px;
-}
-.ma-card .ma-name {
-  font-weight: 700; font-size: 15px; margin-bottom: 4px;
-}
-.ma-card.ma5  .ma-name { color: #f5a623; }
-.ma-card.ma10 .ma-name { color: #4a90d9; }
-.ma-card.ma20 .ma-name { color: #9b59b6; }
-.ma-card .ma-desc {
-  font-size: 12px; color: #888; line-height: 1.6;
-}
-
-/* ============================================================
-   总结
-   ============================================================ */
-.summary-text {
-  font-size: 14px; color: #556; line-height: 1.9;
-}
-.summary-text b { color: #2c3e50; }
-
-/* ============================================================
-   页脚
-   ============================================================ */
-.footer {
-  text-align: center;
-  padding: 28px 20px 40px;
-  font-size: 12px; color: #bbb;
-}
-.footer span { margin: 0 8px; }
-
-/* ============================================================
-   加载中
-   ============================================================ */
-#loading {
-  text-align: center; padding: 80px 20px; color: #999; font-size: 14px;
-}
-.spinner {
-  display: inline-block;
-  width: 36px; height: 36px;
-  border: 3px solid #eee;
-  border-top-color: #f39c12;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  margin-bottom: 12px;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-
-/* ============================================================
-   响应式
-   ============================================================ */
-@media (max-width: 768px) {
-  .header { padding: 32px 16px 28px; }
-  .header h1 { font-size: 22px; }
-  .card { padding: 20px 16px; }
-  .chart-canvas { height: 350px; }
-  #chart-kline,
-  #chart-macd { height: 380px; }
-  .overview-grid, .ma-grid { grid-template-columns: repeat(2,1fr); }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Quant Lab · 量化交易课程项目主页</title>
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-<!-- ========== 1. 头部 ========== -->
-<header class="header">
-  <h1>招商银行 2025 年股票数据分析</h1>
-  <p class="en-sub">China Merchants Bank Stock Analysis 2025</p>
-  <p class="desc">
-    本页面用于展示招商银行 2025 年股价数据诊断、技术指标计算与可视化分析。<br>
-    数据来源 Tushare Pro，仅供课程学习参考。
-  </p>
-</header>
-
-<!-- 加载中 -->
-<div id="loading">
-  <div class="spinner"></div>
-  <div>正在加载数据...</div>
-</div>
-
-<!-- 主内容区（初始隐藏） -->
-<div class="container" id="main" style="display:none; padding-top:24px;">
-
-  <!-- ========== 2. 数据概览 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">1</span>数据概览</div>
-    <div class="overview-grid" id="overview"></div>
-  </div>
-
-  <!-- ========== 3. 数据诊断 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">2</span>数据诊断</div>
-    <ul class="diag-list" id="diag-list"></ul>
-    <div class="diag-result" id="diag-result"></div>
-  </div>
-
-  <!-- ========== 4. 收盘价走势 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">3</span>收盘价走势</div>
-    <div class="chart-wrap"><div class="chart-canvas" id="chart-close"></div></div>
-    <div class="chart-note">
-      上图为招商银行 2025 年每日收盘价折线图，直观展示全年价格变化趋势。<br>
-      图中标注了年内最高收盘价 ¥<span id="close-max-val">--</span>（<span id="close-max-date">--</span>）
-      和最低收盘价 ¥<span id="close-min-val">--</span>（<span id="close-min-date">--</span>）。
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">◆</div>
+        <span>AI Quant Lab</span>
+      </a>
+      <nav class="main-nav">
+        <a href="tasks/task2-indicators.html"><span class="icon">📊</span>指标实验室</a>
+        <a href="tasks/task4-turtle.html"><span class="icon">🐢</span>海龟法则</a>
+        <a href="tasks/task3-ma-cross.html"><span class="icon">📈</span>均线交叉</a>
+      </nav>
     </div>
-  </div>
+  </header>
 
-  <!-- ========== 5. K 线与均线 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">4</span>K 线与均线</div>
-    <div class="chart-wrap"><div class="chart-canvas" id="chart-kline"></div></div>
-    <div class="chart-note">
-      日 K 线图（蜡烛图）展示每日的开盘价、收盘价、最高价和最低价。<br>
-      红色（阳线）= 收盘高于开盘，绿色（阴线）= 收盘低于开盘。<br>
-      MA5（橙）、MA10（蓝）、MA20（紫）为叠加的移动平均线，可辅助观察趋势方向。
-    </div>
-  </div>
+  <section class="status-bar">
+    <span class="badge status-live"><span class="dot"></span>数据已更新</span>
+    <span class="badge">招商银行 600036.SH</span>
+    <span class="badge">纯前端计算</span>
+    <span class="badge">ECharts + Python</span>
+  </section>
 
-  <!-- ========== 6. RSI ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">5</span>RSI 指标分析</div>
-    <div class="chart-wrap"><div class="chart-canvas" id="chart-rsi"></div></div>
-    <div class="chart-note">
-      <b>RSI（相对强弱指数）</b>用来观察短期内价格是否"涨得太快"或"跌得太快"。<br>
-      取值范围 0–100。通常 <b>高于 70</b> 表示价格可能处于超买状态（涨得快），<b>低于 30</b> 表示可能处于超卖状态（跌得快）。<br>
-      50 是中轴线，RSI 在 30–70 之间属于正常波动区间。
-    </div>
-  </div>
+  <section class="hero">
+    <h1>量化交易课程项目</h1>
+    <p>基于招商银行历史数据的量化分析与策略回测平台：技术指标分析、双均线交叉、海龟交易法。</p>
+  </section>
 
-  <!-- ========== 7. MACD ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">6</span>MACD 指标分析</div>
-    <div class="chart-wrap"><div class="chart-canvas" id="chart-macd"></div></div>
-    <div class="chart-note">
-      <b>MACD</b> 用来观察趋势的强弱和动能变化，由三部分组成：<br>
-      <b>DIF</b>（红色线）= 短期 EMA（12 日）− 长期 EMA（26 日），反映短期与长期趋势的偏离程度。<br>
-      <b>DEA</b>（蓝色线）= DIF 的 9 日 EMA，对 DIF 进行平滑。<br>
-      <b>MACD 柱</b> = DIF − DEA 的 2 倍，红柱表示 DIF 在 DEA 上方，绿柱表示 DIF 在 DEA 下方。
-    </div>
-  </div>
-
-  <!-- ========== 8. 布林带 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">7</span>布林带分析</div>
-    <div class="chart-wrap"><div class="chart-canvas" id="chart-boll"></div></div>
-    <div class="chart-note">
-      <b>布林带（Bollinger Bands）</b>用来观察价格的波动范围：<br>
-      <b>中轨</b>（橙色）= 20 日移动平均线（MA20）。<br>
-      <b>上轨和下轨</b>（灰色虚线）= 中轨 ± 2 倍标准差，价格大多数时间运行在上下轨之间。<br>
-      带宽变窄时说明波动较小，带宽变宽时说明波动较大。
-    </div>
-  </div>
-
-  <!-- ========== 9. 均线系统说明 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">8</span>移动平均线（MA）系统</div>
-    <div class="ma-grid">
-      <div class="ma-card ma5">
-        <div class="ma-name">MA5 — 5 日均线</div>
-        <div class="ma-desc">
-          取最近 5 个交易日的收盘价平均值。反应灵敏，用于观察<b>短期</b>价格趋势。
-        </div>
+  <section class="cards-grid">
+    <a href="tasks/task2-indicators.html" class="card">
+      <div class="card-icon green">📊</div>
+      <h3>指标实验室</h3>
+      <p>交互式技术指标分析工具。实时开关布林带、MA 均线、RSI、MACD，观察价格走势与指标之间的关系。</p>
+      <div class="card-tags">
+        <span>RSI</span>
+        <span>MACD</span>
+        <span>布林带</span>
+        <span>MA</span>
       </div>
-      <div class="ma-card ma10">
-        <div class="ma-name">MA10 — 10 日均线</div>
-        <div class="ma-desc">
-          取最近 10 个交易日的收盘价平均值。介于短期与中期之间，用于辅助判断<b>中短期</b>方向。
-        </div>
+      <div class="card-action">进入实验 →</div>
+    </a>
+
+    <a href="tasks/task4-turtle.html" class="card">
+      <div class="card-icon teal">🐢</div>
+      <h3>海龟法则回测</h3>
+      <p>完整实现经典海龟交易系统：唐奇安通道突破、ATR 止损、风险预算与仓位管理。支持不同通道周期参数对比。</p>
+      <div class="card-tags">
+        <span>通道突破</span>
+        <span>ATR</span>
+        <span>止损</span>
+        <span>参数对比</span>
       </div>
-      <div class="ma-card ma20">
-        <div class="ma-name">MA20 — 20 日均线</div>
-        <div class="ma-desc">
-          取最近 20 个交易日的收盘价平均值（约一个月）。相对平滑，用于观察<b>中期</b>价格走势。
-        </div>
+      <div class="card-action">进入回测 →</div>
+    </a>
+
+    <a href="tasks/task3-ma-cross.html" class="card">
+      <div class="card-icon blue">📈</div>
+      <h3>均线交叉策略</h3>
+      <p>经典双均线金叉/死叉策略回测。对比 MA5 与 MA15 交叉信号与买入持有基准的表现差异。</p>
+      <div class="card-tags">
+        <span>MA Cross</span>
+        <span>金叉死叉</span>
+        <span>回测</span>
       </div>
-    </div>
-  </div>
+      <div class="card-action">进入回测 →</div>
+    </a>
 
-  <!-- ========== 10. 总结 ========== -->
-  <div class="card">
-    <div class="section-heading"><span class="section-num">9</span>总结</div>
-    <div class="summary-text">
-      <p>
-        本页面基于招商银行 600036.SH 在 <b>2025 年全年</b>的 243 个交易日数据，
-        完成了<b>数据清洗、统计概览和技术指标计算</b>，并通过可视化图表直观呈现分析结果。
-      </p>
-      <p style="margin-top:8px;">
-        通过收盘价走势图可以了解全年的价格变化轨迹；K 线图与均线系统帮助观察每日
-        多空力量对比和趋势方向；RSI 反映了短期超买超卖状况；MACD 展示了趋势强弱
-        和动能转化；布林带则描绘了价格波动的合理区间。
-      </p>
-      <p style="margin-top:8px;">
-        这些指标都是基于<b>历史数据</b>的客观统计和数学计算，目的是帮助理解过去的
-        价格行为，不构成任何形式的投资建议。实际市场受多种因素影响，过去的表现
-        不代表未来的结果。
-      </p>
-    </div>
-  </div>
+    <a href="cmb_dashboard.html" class="card">
+      <div class="card-icon purple">🖥️</div>
+      <h3>原始 K 线看板</h3>
+      <p>保留原始招商银行 2025 交易数据分析看板，含 K 线图、成交量和收盘价走势。</p>
+      <div class="card-tags">
+        <span>K线</span>
+        <span>成交量</span>
+        <span>历史版本</span>
+      </div>
+      <div class="card-action">查看原看板 →</div>
+    </a>
 
-  <!-- 页脚 -->
-  <div class="footer">
-    数据来源 Tushare Pro <span>|</span> 仅供课程学习 <span>|</span> 更新于 <span id="update-date">---</span>
-  </div>
+    <a href="cmb_analysis.ipynb" class="card">
+      <div class="card-icon orange">📓</div>
+      <h3>Jupyter 分析</h3>
+      <p>Python 数据分析与可视化的 Jupyter Notebook 源文件，记录原始探索分析过程。</p>
+      <div class="card-tags">
+        <span>Notebook</span>
+        <span>Python</span>
+        <span>数据分析</span>
+      </div>
+      <div class="card-action">查看源文件 →</div>
+    </a>
 
-</div><!-- /container -->
+    <a href="reports/task4_turtle_report.md" class="card">
+      <div class="card-icon red">📝</div>
+      <h3>回测报告</h3>
+      <p>完整的策略回测文字报告，包含策略原理、实现过程、结果分析、参数对比和总结心得。</p>
+      <div class="card-tags">
+        <span>Markdown</span>
+        <span>报告</span>
+        <span>结论</span>
+      </div>
+      <div class="card-action">阅读报告 →</div>
+    </a>
+  </section>
 
-<script>
-// ============================================================
-// 工具函数
-// ============================================================
-function fmtVol(v) { return Math.round(v / 10000) + ' 万手'; }
-function fmtAmt(v) { return (v / 10000).toFixed(0) + ' 万元'; }
-
-// ============================================================
-// 数据处理
-// ============================================================
-var D = null; // 处理后的数据对象
-
-function process(raw) {
-  var dates=[], closes=[], opens=[], highs=[], lows=[], vols=[], amounts=[];
-  var ohlc=[], ma5=[], ma10=[], ma20=[];
-  var rsiArr=[], difArr=[], deaArr=[], macdArr=[];
-  var bbU=[], bbM=[], bbL=[];
-
-  raw.forEach(function(r) {
-    dates.push(r.d);
-    closes.push(r.c);
-    opens.push(r.o);
-    highs.push(r.h);
-    lows.push(r.l);
-    vols.push(r.v);
-    amounts.push(r.amt);
-    ohlc.push([r.o, r.c, r.l, r.h]);
-    ma5.push(r.ma5);
-    ma10.push(r.ma10);
-    ma20.push(r.ma20);
-    rsiArr.push(r.rsi);
-    difArr.push(r.dif);
-    deaArr.push(r.dea);
-    macdArr.push(r.macd);
-    bbU.push(r.bb_u);
-    bbM.push(r.bb_m);
-    bbL.push(r.bb_l);
-  });
-
-  var closeMax = Math.max.apply(null, closes);
-  var closeMin = Math.min.apply(null, closes);
-  var closeMaxIdx = closes.indexOf(closeMax);
-  var closeMinIdx = closes.indexOf(closeMin);
-
-  return {
-    dates: dates, closes: closes, opens: opens, highs: highs, lows: lows,
-    vols: vols, amounts: amounts, ohlc: ohlc,
-    ma5: ma5, ma10: ma10, ma20: ma20,
-    rsi: rsiArr,
-    dif: difArr, dea: deaArr, macd: macdArr,
-    bbU: bbU, bbM: bbM, bbL: bbL,
-    stats: {
-      count: closes.length,
-      dateStart: dates[0], dateEnd: dates[dates.length-1],
-      closeMax: closeMax, closeMaxDate: dates[closeMaxIdx],
-      closeMin: closeMin, closeMinDate: dates[closeMinIdx],
-      closeAvg: closes.reduce(function(a,b){return a+b;},0) / closes.length,
-      highMax: Math.max.apply(null, highs),
-      lowMin: Math.min.apply(null, lows),
-      volAvg: vols.reduce(function(a,b){return a+b;},0) / closes.length,
-      closeFirst: closes[0],
-      closeLast: closes[closes.length-1],
-      chgPct: ((closes[closes.length-1] - closes[0]) / closes[0] * 100)
-    }
-  };
-}
-
-// ============================================================
-// ECharts 公共配置
-// ============================================================
-var X_OPTS = {
-  type: 'category', data: [],
-  axisLabel: { formatter: function(v){ return v ? v.slice(5) : ''; }, fontSize:10, color:'#999' },
-  axisLine: { lineStyle:{color:'#ddd'} }
-};
-var ZOOM = [
-  { type:'inside', start:0, end:100 },
-  { type:'slider', start:0, end:100, height:14, bottom:4,
-    borderColor:'#ddd', fillerColor:'rgba(243,156,18,0.1)',
-    handleStyle:{color:'#f39c12'}, textStyle:{fontSize:10} }
-];
-var Y_SPLIT = { splitLine:{lineStyle:{color:'#f0f0f0'}} };
-
-var chartInstances = {};
-
-function initChart(id) {
-  var dom = document.getElementById(id);
-  if (!dom) return null;
-  if (chartInstances[id]) chartInstances[id].dispose();
-  var c = echarts.init(dom);
-  chartInstances[id] = c;
-  return c;
-}
-
-// ============================================================
-// 4. 收盘价走势
-// ============================================================
-function renderClose() {
-  var c = initChart('chart-close'); if (!c) return;
-  c.setOption({
-    tooltip: { trigger:'axis', formatter:function(ps){
-      if (!ps||!ps.length) return '';
-      var v = ps[0].value; if (v==null) return '';
-      var idx = ps[0].dataIndex;
-      var clr = idx>0 && D.closes[idx]>=D.closes[idx-1] ? '#e74c3c' : '#27ae60';
-      return '<b>'+ps[0].axisValue+'</b><br/>收盘价: <span style="color:'+clr+'">¥'+v.toFixed(2)+'</span>';
-    }},
-    grid: { left:60, right:20, top:16, bottom:36 },
-    xAxis: Object.assign({}, X_OPTS, { data:D.dates }),
-    yAxis: Object.assign({ scale:true, axisLabel:{formatter:'¥{value}'} }, Y_SPLIT),
-    dataZoom: ZOOM,
-    series: [{
-      type:'line', name:'收盘价', data:D.closes,
-      lineStyle:{width:1.5, color:'#f39c12'},
-      areaStyle:{color: new echarts.graphic.LinearGradient(0,0,0,1,[
-        {offset:0,color:'rgba(243,156,18,0.12)'},
-        {offset:1,color:'rgba(243,156,18,0.0)'}
-      ])},
-      symbol:'none',
-      markPoint: { data:[
-        {type:'max',name:'最高',symbol:'pin',symbolSize:34,itemStyle:{color:'#e74c3c'},label:{fontSize:10}},
-        {type:'min',name:'最低',symbol:'pin',symbolSize:34,itemStyle:{color:'#27ae60'},label:{fontSize:10}}
-      ]}
-    }]
-  });
-}
-
-// ============================================================
-// 5. K 线与均线
-// ============================================================
-function renderKline() {
-  var c = initChart('chart-kline'); if (!c) return;
-  c.setOption({
-    tooltip: { trigger:'axis', axisPointer:{type:'cross'}, formatter:function(ps){
-      if (!ps||!ps.length) return '';
-      var d = ps[0].axisValue, h='<b>'+d+'</b><br/>';
-      ps.forEach(function(p){
-        if (!p || p.value==null) return;
-        if (p.seriesName==='日K'){
-          var v=p.data; if(!v||v.length<4) return;
-          var chg=((v[1]-v[0])/v[0]*100).toFixed(2), clr=chg>=0?'#e74c3c':'#27ae60';
-          h+='开:'+v[0].toFixed(2)+' 收:<span style="color:'+clr+'">'+v[1].toFixed(2)+'</span><br/>低:'+v[2].toFixed(2)+' 高:'+v[3].toFixed(2)+' ('+(chg>=0?'+':'')+chg+'%)<br/>';
-        } else {
-          h += p.seriesName+': '+p.value.toFixed(2)+'<br/>';
-        }
-      });
-      return h;
-    }},
-    legend: { data:['MA5','MA10','MA20'], bottom:2, textStyle:{fontSize:11} },
-    grid: { left:60, right:20, top:16, bottom:36 },
-    xAxis: Object.assign({}, X_OPTS, { data:D.dates }),
-    yAxis: Object.assign({ scale:true, axisLabel:{formatter:'¥{value}'} }, Y_SPLIT),
-    dataZoom: ZOOM,
-    series: [
-      { name:'日K', type:'candlestick', data:D.ohlc,
-        itemStyle:{color:'#e74c3c',color0:'#27ae60',borderColor:'#e74c3c',borderColor0:'#27ae60'} },
-      { name:'MA5',  type:'line', data:D.ma5,  smooth:true, lineStyle:{width:1,color:'#f5a623'}, symbol:'none' },
-      { name:'MA10', type:'line', data:D.ma10, smooth:true, lineStyle:{width:1,color:'#4a90d9'}, symbol:'none' },
-      { name:'MA20', type:'line', data:D.ma20, smooth:true, lineStyle:{width:1,color:'#9b59b6'}, symbol:'none' }
-    ]
-  });
-}
-
-// ============================================================
-// 6. RSI
-// ============================================================
-function renderRSI() {
-  var c = initChart('chart-rsi'); if (!c) return;
-  c.setOption({
-    tooltip: { trigger:'axis', formatter:function(ps){
-      var v = ps[0].value; if (v==null) return '';
-      return '<b>'+ps[0].axisValue+'</b><br/>RSI(14): '+v.toFixed(2);
-    }},
-    grid: { left:50, right:20, top:16, bottom:36 },
-    xAxis: Object.assign({}, X_OPTS, { data:D.dates }),
-    yAxis: { min:0, max:100, splitLine:{lineStyle:{color:'#f0f0f0'}} },
-    dataZoom: ZOOM,
-    series: [{
-      type:'line', name:'RSI(14)', data:D.rsi,
-      lineStyle:{width:1.5, color:'#f39c12'},
-      areaStyle:{color: new echarts.graphic.LinearGradient(0,0,0,1,[
-        {offset:0,color:'rgba(243,156,18,0.12)'},{offset:1,color:'rgba(243,156,18,0.0)'}
-      ])},
-      symbol:'none',
-      markLine: { silent:true, symbol:'none', lineStyle:{type:'dashed',width:1}, data:[
-        {yAxis:70,label:{formatter:'70',fontSize:10},lineStyle:{color:'#e74c3c'}},
-        {yAxis:50,label:{formatter:'50',fontSize:10},lineStyle:{color:'#bbb'}},
-        {yAxis:30,label:{formatter:'30',fontSize:10},lineStyle:{color:'#27ae60'}}
-      ]}
-    }]
-  });
-}
-
-// ============================================================
-// 7. MACD
-// ============================================================
-function renderMACD() {
-  var c = initChart('chart-macd'); if (!c) return;
-  var barColors = D.macd.map(function(v){ return v==null?'transparent':(v>=0?'#e74c3c':'#27ae60'); });
-  c.setOption({
-    tooltip: { trigger:'axis', formatter:function(ps){
-      if (!ps||!ps.length) return '';
-      var h='<b>'+ps[0].axisValue+'</b><br/>';
-      ps.forEach(function(p){ if(p.value!=null) h+=p.seriesName+': '+p.value.toFixed(4)+'<br/>'; });
-      return h;
-    }},
-    legend: { data:['DIF','DEA','MACD柱'], bottom:2, textStyle:{fontSize:11} },
-    grid: { left:60, right:20, top:16, bottom:36 },
-    xAxis: Object.assign({}, X_OPTS, { data:D.dates }),
-    yAxis: Object.assign({ scale:true }, Y_SPLIT),
-    dataZoom: ZOOM,
-    series: [
-      { name:'MACD柱', type:'bar',
-        data: D.macd.map(function(v,i){ return {value:v, itemStyle:{color:barColors[i]}}; }),
-        barWidth:'60%' },
-      { name:'DIF', type:'line', data:D.dif, lineStyle:{width:1.2,color:'#e74c3c'}, symbol:'none' },
-      { name:'DEA', type:'line', data:D.dea, lineStyle:{width:1.2,color:'#4a90d9'}, symbol:'none' }
-    ]
-  });
-}
-
-// ============================================================
-// 8. 布林带
-// ============================================================
-function renderBoll() {
-  var c = initChart('chart-boll'); if (!c) return;
-  c.setOption({
-    tooltip: { trigger:'axis', formatter:function(ps){
-      if (!ps||!ps.length) return '';
-      var h='<b>'+ps[0].axisValue+'</b><br/>';
-      ps.forEach(function(p){ if(p.value!=null) h+=p.seriesName+': ¥'+p.value.toFixed(2)+'<br/>'; });
-      return h;
-    }},
-    legend: { data:['收盘价','上轨','中轨','下轨'], bottom:2, textStyle:{fontSize:11} },
-    grid: { left:60, right:20, top:16, bottom:36 },
-    xAxis: Object.assign({}, X_OPTS, { data:D.dates }),
-    yAxis: Object.assign({ scale:true, axisLabel:{formatter:'¥{value}'} }, Y_SPLIT),
-    dataZoom: ZOOM,
-    series: [
-      { name:'上轨', type:'line', data:D.bbU, lineStyle:{width:1,color:'rgba(0,0,0,0.2)',type:'dashed'}, symbol:'none',
-        areaStyle:{color:'rgba(0,0,0,0.02)'}, z:1 },
-      { name:'下轨', type:'line', data:D.bbL, lineStyle:{width:1,color:'rgba(0,0,0,0.2)',type:'dashed'}, symbol:'none', z:1 },
-      { name:'中轨', type:'line', data:D.bbM, lineStyle:{width:1.2,color:'#f39c12'}, symbol:'none', z:3 },
-      { name:'收盘价', type:'line', data:D.closes, lineStyle:{width:1.5,color:'#2c3e50'}, symbol:'none', z:4 }
-    ]
-  });
-}
-
-// ============================================================
-// 渲染概览和诊断
-// ============================================================
-function renderUI() {
-  var s = D.stats;
-  var cls = s.chgPct>=0?'up':'down', sign=s.chgPct>=0?'+':'';
-
-  // ---- 概览 ----
-  document.getElementById('overview').innerHTML =
-    '<div class="ov-item"><div class="ov-label">股票代码</div><div class="ov-value" style="font-size:15px;">600036.SH</div></div>'+
-    '<div class="ov-item"><div class="ov-label">数据区间</div><div class="ov-value" style="font-size:14px;">'+ s.dateStart +' ~ '+ s.dateEnd +'</div></div>'+
-    '<div class="ov-item"><div class="ov-label">数据条数</div><div class="ov-value">'+ s.count +' 条</div></div>'+
-    '<div class="ov-item"><div class="ov-label">起始收盘价</div><div class="ov-value">¥'+ s.closeFirst.toFixed(2) +'</div></div>'+
-    '<div class="ov-item"><div class="ov-label">最新收盘价</div><div class="ov-value '+ cls +'">¥'+ s.closeLast.toFixed(2) +'</div></div>'+
-    '<div class="ov-item"><div class="ov-label">最高价</div><div class="ov-value up">¥'+ s.highMax.toFixed(2) +'</div></div>'+
-    '<div class="ov-item"><div class="ov-label">最低价</div><div class="ov-value down">¥'+ s.lowMin.toFixed(2) +'</div></div>'+
-    '<div class="ov-item"><div class="ov-label">平均成交量</div><div class="ov-value" style="font-size:14px;">'+ fmtVol(s.volAvg) +'</div></div>';
-
-  // ---- 诊断 ----
-  document.getElementById('diag-list').innerHTML =
-    '<li><span class="diag-icon-ok">✓</span> <b>缺失值检查：</b>0 个缺失值。所有字段（开盘/最高/最低/收盘/前收盘/涨跌幅/成交量/成交额）数据完整。</li>'+
-    '<li><span class="diag-icon-ok">✓</span> <b>重复日期检查：</b>无重复日期。每个交易日仅有一条唯一记录。</li>'+
-    '<li><span class="diag-icon-info">i</span> <b>日期连续性说明：</b>全年 365 天中共覆盖 243 个交易日。周末为常规休市；春节（1.28–2.4）、劳动节、国庆节等法定节假日期间无交易记录，属于正常现象。</li>';
-
-  document.getElementById('diag-result').innerHTML =
-    '<b>综合判定：</b>数据的完整性、准确性均满足分析要求，可直接用于后续技术指标（均线、RSI、MACD、布林带）的计算和可视化。<br>'+
-    '成交量单位说明：Tushare <code>vol</code> 字段单位为"手"，A 股 1 手 = 100 股。';
-
-  // ---- 收盘价标注 ----
-  document.getElementById('close-max-val').textContent = s.closeMax.toFixed(2);
-  document.getElementById('close-max-date').textContent = s.closeMaxDate;
-  document.getElementById('close-min-val').textContent = s.closeMin.toFixed(2);
-  document.getElementById('close-min-date').textContent = s.closeMinDate;
-}
-
-// ============================================================
-// 主流程
-// ============================================================
-fetch('data/cmb_2025_compact.json')
-  .then(function(r){ if(!r.ok) throw Error('HTTP '+r.status); return r.json(); })
-  .then(function(json){
-    D = process(json);
-    renderUI();
-
-    // 先显示主容器，再渲染图表，确保容器有正确宽度
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('main').style.display = '';
-    document.getElementById('update-date').textContent = new Date().toISOString().slice(0,10);
-
-    // 渲染所有图表（此时容器已可见，ECharts 能获取正确尺寸）
-    renderClose();
-    renderKline();
-    renderRSI();
-    renderMACD();
-    renderBoll();
-
-    window.addEventListener('resize', function(){
-      for (var k in chartInstances) { if (chartInstances[k]) chartInstances[k].resize(); }
-    });
-  })
-  .catch(function(e){
-    document.getElementById('loading').innerHTML =
-      '<div style="color:#e74c3c;font-size:15px;">⚠ 数据加载失败</div>'+
-      '<div style="margin-top:6px;color:#999;">请确认 data/cmb_2025_compact.json 文件存在<br>'+e.message+'</div>';
-  });
-</script>
-
+  <footer class="site-footer">
+    <p>AI Quant Lab · 量化交易课程项目 · 仅供学习使用 · 不构成投资建议</p>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>均线交叉策略 | AI Quant Lab</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="task-page">
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">◆</div>
+        <span>AI Quant Lab</span>
+      </a>
+      <nav class="main-nav">
+        <a href="task2-indicators.html"><span class="icon">📊</span>指标实验室</a>
+        <a href="task4-turtle.html"><span class="icon">🐢</span>海龟法则</a>
+        <a href="task3-ma-cross.html" class="active"><span class="icon">📈</span>均线交叉</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="task-container">
+    <aside class="sidebar">
+      <div class="stock-info">
+        <div class="name">当前回测标的</div>
+        <div class="code">招商银行 · 600036.SH</div>
+        <div class="meta">回测区间：2025-01-22 ~ 2025-12-31<br>策略：MA5 × MA15</div>
+      </div>
+
+      <h2>策略参数</h2>
+
+      <div class="control-group">
+        <label>短期均线</label>
+        <select disabled>
+          <option>MA5</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>长期均线</label>
+        <select disabled>
+          <option>MA15</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>买入规则</label>
+        <div style="font-size:13px;color:#6b7280;line-height:1.8;">
+          MA5 上穿 MA15 形成金叉 → 买入
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>卖出规则</label>
+        <div style="font-size:13px;color:#6b7280;line-height:1.8;">
+          MA5 下穿 MA15 形成死叉 → 卖出
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>相关资料</label>
+        <div style="font-size:13px;line-height:1.8;">
+          <a href="../reports/task3_ma_backtest_report.md" style="color:#10b981;">📄 完整回测报告</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-title">
+        <h1>Moving Average Crossover</h1>
+        <p class="subtitle">双均线交叉策略回测：MA5 金叉买入，MA5 死叉卖出</p>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="label">策略累计收益</div>
+          <div class="value down">-10.15%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">买入持有收益</div>
+          <div class="value up">+9.32%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">最大回撤</div>
+          <div class="value down">-12.85%</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">夏普比率</div>
+          <div class="value down">-1.10</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">买入信号</div>
+          <div class="value neutral small">7 次</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">卖出信号</div>
+          <div class="value neutral small">7 次</div>
+        </div>
+      </div>
+
+      <div class="image-grid">
+        <div class="image-card">
+          <div class="caption">图1：MA5 / MA15 均线交叉与买卖信号</div>
+          <img src="../assets/img/fig1_ma_signals.png" alt="MA5 MA15 交叉信号">
+        </div>
+        <div class="image-card">
+          <div class="caption">图2：策略累计净值 vs 买入持有净值</div>
+          <img src="../assets/img/fig2_strategy_value.png" alt="策略净值对比">
+        </div>
+      </div>
+
+      <div class="report-section">
+        <h2>策略回测结论</h2>
+        <p>
+          本次回测采用招商银行 600036.SH 2025 年 1 月 22 日至 2025 年 12 月 31 日的日线数据，
+          使用 MA5 与 MA15 双均线交叉策略。当 MA5 自下而上穿越 MA15 时产生金叉买入信号，
+          当 MA5 自上而下穿越 MA15 时产生死叉卖出信号。
+        </p>
+        <p>
+          回测结果显示，策略累计收益为 <strong>-10.15%</strong>，而同期买入持有收益为 <strong>+9.32%</strong>，
+          策略显著跑输基准。主要原因是招商银行 2025 年整体呈现震荡上行走势，期间存在多次均线缠绕和反复交叉，
+          导致双均线策略产生了多次假信号，频繁进出带来了摩擦成本。
+        </p>
+        <p>
+          不过，策略的最大回撤控制在 <strong>-12.85%</strong>，波动率为 <strong>13.11%</strong>，
+          相比买入持有的波动率较低，说明在趋势转折或回调阶段，策略能够及时退出、降低波动。
+          这一结果表明，双均线策略更适合趋势较为明显的行情，在震荡市中使用时需要配合趋势过滤或止损机制。
+        </p>
+        <div class="highlight-box">
+          关键提示：双均线交叉策略简单直观，但容易在震荡行情中产生反复假信号。实际应用中建议增加趋势确认、过滤条件或参数优化。
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>AI Quant Lab · 量化交易课程项目 · 仅供学习使用</p>
+  </footer>
+
+  <script src="../assets/js/task3-ma-cross.js"></script>
+</body>
+</html>
